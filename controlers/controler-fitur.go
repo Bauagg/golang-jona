@@ -15,7 +15,7 @@ import (
 )
 
 func GetFiturJona(ctx *gin.Context) {
-	var fiturJona models.FiturJona
+	var fiturJona []models.FiturJona
 
 	if err := databases.DB.Table("fitur_jonas").Find(&fiturJona).Error; err != nil {
 		ctx.JSON(500, gin.H{
