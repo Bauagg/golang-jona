@@ -27,3 +27,14 @@ type InputLogin struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+// Input Email User
+type InputEmail struct {
+	Email string `json:"email" binding:"required"`
+}
+
+// Input Password User
+type InputPassword struct {
+	Password           string `json:"password" binding:"required"` // Wajib diisi, disembunyikan saat diubah ke JSON
+	KonfirmasiPassword string `json:"konfirmasi_password" binding:"required" gorm:"-"`
+}

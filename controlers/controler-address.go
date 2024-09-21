@@ -151,13 +151,16 @@ func UpdateAddress(ctx *gin.Context) {
 				"error":   true,
 				"message": "Address not found for this user",
 			})
+
+			return
 		} else {
 			ctx.JSON(500, gin.H{
 				"error":   true,
 				"message": "Failed to retrieve address",
 			})
+
+			return
 		}
-		return
 	}
 
 	data := models.Address{

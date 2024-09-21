@@ -192,6 +192,33 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 
+	rand.Seed(time.Now().UnixNano())
+	randomOTP := rand.Intn(9000) + 1000
+
+	otp := models.OTP{
+		NumberOtp: uint64(randomOTP),
+		UserId:    uint64(user.ID),
+		ExpiresAt: time.Now().Add(5 * time.Minute), // OTP expires in 5 minutes
+	}
+
+	errSendEmail := utils.SendEmail(input.Email, uint64(randomOTP))
+	if errSendEmail != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to send OTP email.",
+		})
+
+		return
+	}
+
+	if err := databases.DB.Table("otps").Where("user_id = ?", user.ID).Updates(otp).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update OTP.",
+		})
+		return
+	}
+
 	type Data struct {
 		ID    uint64
 		Email string
@@ -210,5 +237,117 @@ func LoginUser(ctx *gin.Context) {
 		"error":   false,
 		"message": "login success.",
 		"data":    data,
+	})
+}
+
+func CreateEmailOTP(ctx *gin.Context) {
+	var input models.InputEmail
+	var data models.Users
+
+	if errInput := ctx.ShouldBind(&input); errInput != nil {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": errInput.Error(),
+		})
+
+		return
+	}
+
+	if err := databases.DB.Table("users").Where("email = ?", input.Email).First(&data).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(401, gin.H{ // Status 401 untuk Unauthorized
+				"error":   true,
+				"message": "Invalid email or password.",
+			})
+			return
+		}
+
+		ctx.JSON(500, gin.H{ // Status 500 untuk Internal Server Error
+			"error":   true,
+			"message": "Internal server error.",
+		})
+		return
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	randomOTP := rand.Intn(9000) + 1000
+
+	otp := models.OTP{
+		NumberOtp: uint64(randomOTP),
+		UserId:    uint64(data.ID),
+		ExpiresAt: time.Now().Add(5 * time.Minute), // OTP expires in 5 minutes
+	}
+
+	errSendEmail := utils.SendEmail(input.Email, uint64(randomOTP))
+	if errSendEmail != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to send OTP email.",
+		})
+
+		return
+	}
+
+	if err := databases.DB.Table("otps").Where("user_id = ?", data.ID).Updates(otp).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update OTP.",
+		})
+		return
+	}
+
+	token, err := utils.SignToken(uint64(data.ID), data.Email, string(data.Role))
+
+	if err != nil {
+		ctx.JSON(500, gin.H{ // Status 500 for Internal Server Error
+			"error":   true,
+			"message": "Failed to generate token.",
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"error":   false,
+		"message": "OTP updated successfully.",
+		"token":   token,
+	})
+}
+
+func UpdatePassword(ctx *gin.Context) {
+	var input models.InputPassword
+
+	if errInput := ctx.ShouldBind(&input); errInput != nil {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": errInput.Error(),
+		})
+
+		return
+	}
+
+	// validate password sama konfirm password harus sama
+	if input.Password != input.KonfirmasiPassword {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": "Pastikan password dan konfirmasi password Anda sama.",
+		})
+
+		return
+	}
+
+	hashedPassword := utils.HashPassword(input.Password)
+
+	if err := databases.DB.Table("users").Where("id = ?", ctx.Param("id")).Update("password", hashedPassword).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update the password: " + err.Error(),
+		})
+		return
+	}
+
+	// Return success response
+	ctx.JSON(200, gin.H{
+		"error":   false,
+		"message": "Password updated successfully.",
 	})
 }

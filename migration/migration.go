@@ -13,6 +13,8 @@ func Migrate() {
 		&models.OTP{},
 		&models.Address{},
 		&models.FiturJona{},
+		&models.CaegoryUtama{},
+		&models.SubCategory{},
 	)
 	if err != nil {
 		panic("Failed to migrate: " + err.Error())

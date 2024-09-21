@@ -14,6 +14,10 @@ func RouterIndex(app *gin.Engine) {
 	router.POST("/api/jona/v-1/register", controlers.RegisterUser)
 	router.POST("/api/jona/v-1/login", controlers.LoginUser)
 
+	// Router lupa Password
+	router.PUT("/api/jona/v-1/email", controlers.CreateEmailOTP)
+	router.PUT("/api/jona/v-1/password/:id", controlers.UpdatePassword)
+
 	// Router untuk OTP
 	router.GET("/api/jona/v-1/otp", middleware.AuthMiddleware(), controlers.SendEmailOtp)
 	router.POST("/api/jona/v-1/otp", middleware.AuthMiddleware(), controlers.VerifyOTP)
@@ -30,4 +34,11 @@ func RouterIndex(app *gin.Engine) {
 	router.POST("/api/jona/v-1/fitur-jona", controlers.CreateFitur)
 	router.PUT("/api/jona/v-1/fitur-jona/:id", controlers.UpdateFiturJona)
 	router.DELETE("/api/jona/v-1/fitur-jona/:id", controlers.DeleteFiturJona)
+
+	// Router untuk Category Utama
+	router.GET("/api/jona/v-1/category-utama", controlers.ListDataCategoryAll)
+	router.GET("/api/jona/v-1/category-utama/:id", controlers.ListDataCategory)
+	router.POST("/api/jona/v-1/category-utama", controlers.CreateCategoryUtama)
+	router.PUT("/api/jona/v-1/category-utama/:id", controlers.UpdateCategoryUtama)
+	router.DELETE("/api/jona/v-1/category-utama/:id", controlers.DeleteCategoryUtama)
 }
