@@ -3,6 +3,7 @@ package controlers
 import (
 	"backend-jona-golang/databases"
 	"backend-jona-golang/models"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -84,6 +85,16 @@ func CreateAddress(ctx *gin.Context) {
 		return
 	}
 
+	regexNotelepon := regexp.MustCompile(`^\+62\s?\d{2,3}[-\s]?\d{3,4}[-\s]?\d{3,4}|\(0\d{2,3}\)\s?\d{3,4}[-\s]?\d{3,4}|\+62\d{8,14}|0\d{9,13}$`)
+	if !regexNotelepon.MatchString(input.Phone) {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": "Invalid phone number format",
+		})
+
+		return
+	}
+
 	if err := databases.DB.Table("users").Where("id = ?", user_id).First(&User).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
@@ -99,6 +110,7 @@ func CreateAddress(ctx *gin.Context) {
 		State:      input.State,
 		PostalCode: input.PostalCode,
 		Country:    input.Country,
+		Phone:      input.Phone,
 		Latitude:   input.Latitude,
 		Longitude:  input.Longitude,
 	}
@@ -142,6 +154,16 @@ func UpdateAddress(ctx *gin.Context) {
 		return
 	}
 
+	regexNotelepon := regexp.MustCompile(`^\+62\s?\d{2,3}[-\s]?\d{3,4}[-\s]?\d{3,4}|\(0\d{2,3}\)\s?\d{3,4}[-\s]?\d{3,4}|\+62\d{8,14}|0\d{9,13}$`)
+	if !regexNotelepon.MatchString(input.Phone) {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": "Invalid phone number format",
+		})
+
+		return
+	}
+
 	// Cari address berdasarkan user_id dan addressId
 	if err := databases.DB.Table("addresses").
 		Where("id = ? AND user_id = ?", addressId, user_id).
@@ -170,6 +192,7 @@ func UpdateAddress(ctx *gin.Context) {
 		State:      input.State,
 		PostalCode: input.PostalCode,
 		Country:    input.Country,
+		Phone:      input.Phone,
 		Latitude:   input.Latitude,
 		Longitude:  input.Longitude,
 	}

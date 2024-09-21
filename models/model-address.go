@@ -11,6 +11,7 @@ type Address struct {
 	State      string  `gorm:"size:100;not null" json:"state"`
 	PostalCode string  `gorm:"size:20;not null" json:"postal_code"`
 	Country    string  `gorm:"size:100;not null" json:"country"`
+	Phone      string  `gorm:"size:100;not null" json:"phone"`
 	Latitude   float64 `gorm:"type:decimal(9,6);not null" json:"latitude"`  // Latitude with 6 decimal places
 	Longitude  float64 `gorm:"type:decimal(9,6);not null" json:"longitude"` // Longitude with 6 decimal places
 }
@@ -21,6 +22,7 @@ type PayloadAddress struct {
 	State      string  `gorm:"size:100;not null" json:"state"`
 	PostalCode string  `gorm:"size:20;not null" json:"postal_code"`
 	Country    string  `gorm:"size:100;not null" json:"country"`
+	Phone      string  `gorm:"size:100;not null" json:"phone"`
 	Latitude   float64 `gorm:"type:decimal(9,6);not null" json:"latitude"`  // Latitude with 6 decimal places
 	Longitude  float64 `gorm:"type:decimal(9,6);not null" json:"longitude"` // Longitude with 6 decimal places
 }
