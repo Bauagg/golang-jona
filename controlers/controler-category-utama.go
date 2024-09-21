@@ -74,7 +74,6 @@ func CreateCategoryUtama(ctx *gin.Context) {
 	data := models.CaegoryUtama{
 		FiturId:     input.FiturId,
 		Nama:        input.Nama,
-		Judul:       input.Judul,
 		Description: input.Description,
 	}
 
@@ -129,7 +128,6 @@ func UpdateCategoryUtama(ctx *gin.Context) {
 	}
 
 	// Update the existing category fields
-	data.Judul = input.Judul
 	data.Nama = input.Nama
 	data.Description = input.Description
 

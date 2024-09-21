@@ -7,7 +7,6 @@ type CaegoryUtama struct {
 	FiturId     uint64    `json:"fitur_id" binding:"required"`
 	Fitur       FiturJona `gorm:"foreignKey:FiturId"`
 	Nama        string    `json:"nama" binding:"required"`
-	Judul       string    `json:"judul" binding:"required"`
 	Description string    `json:"description" binding:"required"`
 }
 
@@ -15,6 +14,5 @@ type InputCaegoryUtama struct {
 	gorm.Model
 	FiturId     uint64 `json:"fitur_id" binding:"required"`
 	Nama        string `json:"nama" binding:"required"`
-	Judul       string `json:"judul" binding:"required"`
 	Description string `json:"description" binding:"required"`
 }
