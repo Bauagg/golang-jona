@@ -104,15 +104,17 @@ func CreateAddress(ctx *gin.Context) {
 	}
 
 	data := models.Address{
-		UserID:     uint64(User.ID),
-		Street:     input.Street,
-		City:       input.City,
-		State:      input.State,
-		PostalCode: input.PostalCode,
-		Country:    input.Country,
-		Phone:      input.Phone,
-		Latitude:   input.Latitude,
-		Longitude:  input.Longitude,
+		UserID:       uint64(User.ID),
+		Street:       input.Street,
+		City:         input.City,
+		State:        input.State,
+		PostalCode:   input.PostalCode,
+		Country:      input.Country,
+		Phone:        input.Phone,
+		NamaAlamat:   input.NamaAlamat,
+		DetailAlamat: input.DetailAlamat,
+		Latitude:     input.Latitude,
+		Longitude:    input.Longitude,
 	}
 
 	if err := databases.DB.Table("addresses").Create(&data).Error; err != nil {
@@ -186,15 +188,17 @@ func UpdateAddress(ctx *gin.Context) {
 	}
 
 	data := models.Address{
-		UserID:     uint64(User.ID),
-		Street:     input.Street,
-		City:       input.City,
-		State:      input.State,
-		PostalCode: input.PostalCode,
-		Country:    input.Country,
-		Phone:      input.Phone,
-		Latitude:   input.Latitude,
-		Longitude:  input.Longitude,
+		UserID:       uint64(User.ID),
+		Street:       input.Street,
+		City:         input.City,
+		State:        input.State,
+		PostalCode:   input.PostalCode,
+		Country:      input.Country,
+		Phone:        input.Phone,
+		NamaAlamat:   input.NamaAlamat,
+		DetailAlamat: input.DetailAlamat,
+		Latitude:     input.Latitude,
+		Longitude:    input.Longitude,
 	}
 
 	if err := databases.DB.Table("addresses").Where("id = ? AND user_id = ?", addressId, user_id).Updates(&data).Error; err != nil {
