@@ -27,7 +27,7 @@ func ListDataCategory(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"error":   true,
+		"error":   false,
 		"message": "get data success",
 		"data":    data,
 	})
@@ -51,7 +51,7 @@ func ListDataCategoryAll(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"error":   true,
+		"error":   false,
 		"message": "get data success",
 		"data":    data,
 	})
@@ -134,7 +134,7 @@ func UpdateCategoryUtama(ctx *gin.Context) {
 	data.Description = input.Description
 
 	// Save the changes to the database
-	if err := databases.DB.Table("caegory_utamas").Where("id = ?", ctx.Param("id")).Save(&data).Error; err != nil {
+	if err := databases.DB.Table("caegory_utamas").Where("id = ?", ctx.Param("id")).Updates(&data).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to update Category Utama: " + err.Error(),
