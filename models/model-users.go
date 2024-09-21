@@ -16,6 +16,7 @@ const (
 // model databases
 type Users struct {
 	gorm.Model
+	Nama               string `json:"nama" binding:"required"`
 	Email              string `json:"email" binding:"required" gorm:"unique"`                                                            // Wajib diisi
 	Password           string `json:"password" binding:"required"`                                                                       // Wajib diisi, disembunyikan saat diubah ke JSON
 	KonfirmasiPassword string `json:"konfirmasi_password" binding:"required" gorm:"-"`                                                   // Wajib diisi, tidak disimpan ke DB
