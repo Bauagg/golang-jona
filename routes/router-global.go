@@ -1,7 +1,7 @@
 package router
 
 import (
-	"backend-jona-golang/controlers"
+	controlers "backend-jona-golang/controlers/global-controller"
 	middleware "backend-jona-golang/midelware"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +16,7 @@ func RouterIndex(app *gin.Engine) {
 
 	// Router lupa Password
 	router.PUT("/api/jona/v-1/email", controlers.CreateEmailOTP)
-	router.PUT("/api/jona/v-1/password/:id", controlers.UpdatePassword)
+	router.PUT("/api/jona/v-1/password", controlers.UpdatePassword)
 
 	// Router untuk OTP
 	router.GET("/api/jona/v-1/otp", middleware.AuthMiddleware(), controlers.SendEmailOtp)
@@ -41,4 +41,17 @@ func RouterIndex(app *gin.Engine) {
 	router.POST("/api/jona/v-1/category-utama", controlers.CreateCategoryUtama)
 	router.PUT("/api/jona/v-1/category-utama/:id", controlers.UpdateCategoryUtama)
 	router.DELETE("/api/jona/v-1/category-utama/:id", controlers.DeleteCategoryUtama)
+
+	//  Router untuk Sub category
+	router.GET("/api/jona/v-1/sub-category", controlers.ListSubCategoryAll)
+	router.GET("/api/jona/v-1/sub-category/:id", controlers.ListSubCategory)
+	router.POST("/api/jona/v-1/sub-category", controlers.CreateSubCategory)
+	router.PUT("/api/jona/v-1/sub-category/:id", controlers.UpdateSubCategory)
+	router.DELETE("/api/jona/v-1/sub-category/:id", controlers.DeleteSubCategory)
+
+	// Router untuk Daftar Bank
+	router.GET("/api/jona/v-1/daftar-bank", controlers.ListDaftarBankAll)
+	router.POST("/api/jona/v-1/daftar-bank", controlers.CreateDaftarBank)
+	router.PUT("/api/jona/v-1/daftar-bank/:id", controlers.UpdateDaftarBank)
+	router.DELETE("/api/jona/v-1/daftar-bank/:id", controlers.DeleteDaftarBank)
 }

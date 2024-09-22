@@ -8,16 +8,18 @@ import (
 )
 
 var (
-	DB_HOST      string
-	DB_PORT      string
-	DB_NAME      string
-	DB_USER      string
-	DB_PASSWORD  string
-	APP_PORT     string
-	SECRET_KEY   string
-	GMAIL_OTP    string
-	PASSWORD_OTP string
-	URL_HOST     string
+	DB_HOST             string
+	DB_PORT             string
+	DB_NAME             string
+	DB_USER             string
+	DB_PASSWORD         string
+	APP_PORT            string
+	SECRET_KEY          string
+	GMAIL_OTP           string
+	PASSWORD_OTP        string
+	URL_HOST            string
+	URL_MIDTRANS        string
+	SERVER_KEY_MIDTRANS string
 )
 
 func InitConfigEnv() {
@@ -76,5 +78,15 @@ func InitConfigEnv() {
 	urlhost := os.Getenv("URL_HOST")
 	if urlhost != "" {
 		URL_HOST = urlhost
+	}
+
+	urlMidtrans := os.Getenv("URL_MIDTRANS")
+	if urlMidtrans != "" {
+		URL_MIDTRANS = urlMidtrans
+	}
+
+	serverKeyMidtrans := os.Getenv("SERVER_KEY_MIDTRANS")
+	if serverKeyMidtrans != "" {
+		SERVER_KEY_MIDTRANS = serverKeyMidtrans
 	}
 }

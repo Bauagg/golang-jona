@@ -2,7 +2,8 @@ package migrate
 
 import (
 	"backend-jona-golang/databases"
-	"backend-jona-golang/models"
+	models "backend-jona-golang/models/model-global"
+	modelkonsumens "backend-jona-golang/models/model-konsumen"
 )
 
 func Migrate() {
@@ -15,6 +16,8 @@ func Migrate() {
 		&models.FiturJona{},
 		&models.CaegoryUtama{},
 		&models.SubCategory{},
+		&models.DaftarBank{},
+		&modelkonsumens.PesananKonsumen{},
 	)
 	if err != nil {
 		panic("Failed to migrate: " + err.Error())

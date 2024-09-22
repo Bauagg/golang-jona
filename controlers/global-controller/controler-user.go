@@ -2,7 +2,7 @@ package controlers
 
 import (
 	"backend-jona-golang/databases"
-	"backend-jona-golang/models"
+	models "backend-jona-golang/models/model-global"
 	"backend-jona-golang/utils"
 	"math/rand"
 	"regexp"
@@ -98,7 +98,7 @@ func RegisterUser(ctx *gin.Context) {
 	otp = models.OTP{
 		NumberOtp: uint64(randomOTP),
 		UserId:    uint64(input.ID),
-		ExpiresAt: time.Now().Add(5 * time.Minute), // OTP expires in 5 minutes
+		ExpiresAt: time.Now().Add(1 * time.Minute), // OTP expires in 1 minutes
 	}
 
 	errCreateOtp := databases.DB.Table("otps").Create(&otp).Error
@@ -198,7 +198,7 @@ func LoginUser(ctx *gin.Context) {
 	otp := models.OTP{
 		NumberOtp: uint64(randomOTP),
 		UserId:    uint64(user.ID),
-		ExpiresAt: time.Now().Add(5 * time.Minute), // OTP expires in 5 minutes
+		ExpiresAt: time.Now().Add(1 * time.Minute), // OTP expires in 5 minutes
 	}
 
 	errSendEmail := utils.SendEmail(input.Email, uint64(randomOTP))
@@ -275,7 +275,7 @@ func CreateEmailOTP(ctx *gin.Context) {
 	otp := models.OTP{
 		NumberOtp: uint64(randomOTP),
 		UserId:    uint64(data.ID),
-		ExpiresAt: time.Now().Add(5 * time.Minute), // OTP expires in 5 minutes
+		ExpiresAt: time.Now().Add(1 * time.Minute), // OTP expires in 5 minutes
 	}
 
 	errSendEmail := utils.SendEmail(input.Email, uint64(randomOTP))
@@ -315,6 +315,7 @@ func CreateEmailOTP(ctx *gin.Context) {
 
 func UpdatePassword(ctx *gin.Context) {
 	var input models.InputPassword
+	user_id, _ := ctx.Get("userID")
 
 	if errInput := ctx.ShouldBind(&input); errInput != nil {
 		ctx.JSON(400, gin.H{
@@ -337,7 +338,7 @@ func UpdatePassword(ctx *gin.Context) {
 
 	hashedPassword := utils.HashPassword(input.Password)
 
-	if err := databases.DB.Table("users").Where("id = ?", ctx.Param("id")).Update("password", hashedPassword).Error; err != nil {
+	if err := databases.DB.Table("users").Where("id = ?", user_id).Update("password", hashedPassword).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to update the password: " + err.Error(),

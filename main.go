@@ -27,10 +27,12 @@ func main() {
 	app.Use(middleware.ErrorHandlingMiddleware())
 
 	// Setup static file serving for images
-	app.Static("/images", "./public/image-fitur")
+	app.Static("/images-fitur", "./public/image-fitur")
+	app.Static("/images-bank", "./public/image-bank")
 
 	// Setup router
 	router.RouterIndex(app)
+	router.RouterKonsumen(app)
 
 	// Jalankan aplikasi di port 8080
 	err := app.Run(config.APP_PORT)

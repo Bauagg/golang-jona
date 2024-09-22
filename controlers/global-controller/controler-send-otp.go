@@ -2,7 +2,7 @@ package controlers
 
 import (
 	"backend-jona-golang/databases"
-	"backend-jona-golang/models"
+	models "backend-jona-golang/models/model-global"
 	"backend-jona-golang/utils"
 	"math/rand"
 	"time"

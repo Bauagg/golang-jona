@@ -2,7 +2,7 @@ package controlers
 
 import (
 	"backend-jona-golang/databases"
-	"backend-jona-golang/models"
+	models "backend-jona-golang/models/model-global"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

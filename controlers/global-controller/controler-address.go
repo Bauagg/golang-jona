@@ -2,7 +2,7 @@ package controlers
 
 import (
 	"backend-jona-golang/databases"
-	"backend-jona-golang/models"
+	models "backend-jona-golang/models/model-global"
 	"regexp"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +42,7 @@ func DetailAddress(ctx *gin.Context) {
 	addressID := ctx.Param("id")
 
 	err := databases.DB.Table("addresses").Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select("ID, email, role")
+		return db.Select("ID, email, role, nama, profile")
 	}).
 		Where("id = ? AND user_id = ?", addressID, userId).First(&addresses).Error
 

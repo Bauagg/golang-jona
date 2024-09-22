@@ -3,9 +3,8 @@ package controlers
 import (
 	"backend-jona-golang/config"
 	"backend-jona-golang/databases"
-	"backend-jona-golang/models"
+	models "backend-jona-golang/models/model-global"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,28 +13,27 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetFiturJona(ctx *gin.Context) {
-	var fiturJona []models.FiturJona
+func ListDaftarBankAll(ctx *gin.Context) {
+	var data []models.DaftarBank
 
-	if err := databases.DB.Table("fitur_jonas").Find(&fiturJona).Error; err != nil {
+	if err := databases.DB.Table("daftar_banks").Find(&data).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
-			"message": "Failed to retrieve icons",
+			"message": "Failed to retrieve daftar Bank",
 		})
 
 		return
 	}
 
-	// Return success response
 	ctx.JSON(200, gin.H{
 		"error":   false,
 		"message": "get data fitur jona success",
-		"data":    fiturJona,
+		"data":    data,
 	})
 }
 
-func CreateFitur(ctx *gin.Context) {
-	var input models.FiturJona
+func CreateDaftarBank(ctx *gin.Context) {
+	var input models.DaftarBank
 
 	if errInput := ctx.ShouldBind(&input); errInput != nil {
 		ctx.JSON(400, gin.H{
@@ -46,22 +44,21 @@ func CreateFitur(ctx *gin.Context) {
 		return
 	}
 
-	// Get the uploaded file from form data
 	file, err := ctx.FormFile("icon")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(400, gin.H{
 			"error":   true,
 			"message": "Failed to upload image: " + err.Error(),
 		})
+
 		return
 	}
 
-	// Create directory if not exists
-	imageDir := "./public/image-fitur"
+	imageDir := "./public/image-bank"
 	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
 		err = os.MkdirAll(imageDir, os.ModePerm)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
+			ctx.JSON(500, gin.H{
 				"error":   true,
 				"message": "Failed to create image directory: " + err.Error(),
 			})
@@ -69,28 +66,21 @@ func CreateFitur(ctx *gin.Context) {
 		}
 	}
 
-	// Generate unique filename based on timestamp
 	fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
 	filepath := filepath.Join(imageDir, fileName)
 
-	// Save the file to the server
 	if err := ctx.SaveUploadedFile(file, filepath); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to save image: " + err.Error(),
 		})
 		return
 	}
 
-	// Set the icon URL (relative path to the file)
-	data := models.FiturJona{
-		Icon: config.URL_HOST + "/images/" + fileName,
-		Nama: input.Nama,
-	}
+	input.Icon = config.URL_HOST + "/images-bank/" + fileName
 
-	// Save the feature to the database (assuming you have a DB instance setup)
-	if err := databases.DB.Table("fitur_jonas").Create(&data).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+	if err := databases.DB.Table("daftar_banks").Create(&input).Error; err != nil {
+		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to save feature to database: " + err.Error(),
 		})
@@ -98,17 +88,16 @@ func CreateFitur(ctx *gin.Context) {
 	}
 
 	// Return success response
-	ctx.JSON(http.StatusOK, gin.H{
+	ctx.JSON(200, gin.H{
 		"error":   false,
 		"message": "Feature created successfully",
 		"data":    input,
 	})
 }
 
-func UpdateFiturJona(ctx *gin.Context) {
-	var input models.FiturJona
-	var data models.FiturJona
-	id := ctx.Param("id")
+func UpdateDaftarBank(ctx *gin.Context) {
+	var input models.DaftarBank
+	var data models.DaftarBank
 
 	if errInput := ctx.ShouldBind(&input); errInput != nil {
 		ctx.JSON(400, gin.H{
@@ -119,43 +108,41 @@ func UpdateFiturJona(ctx *gin.Context) {
 		return
 	}
 
-	// Get the uploaded file from form data
 	file, err := ctx.FormFile("icon")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(400, gin.H{
 			"error":   true,
 			"message": "Failed to upload image: " + err.Error(),
 		})
+
 		return
 	}
 
-	if err := databases.DB.Table("fitur_jonas").Where("id = ?", id).First(&data).Error; err != nil {
+	if err := databases.DB.Table("daftar_banks").Where("id = ?", ctx.Param("id")).First(&data).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.JSON(404, gin.H{
 				"error":   true,
-				"message": "data fitur_jonas not found",
+				"message": "No subcategories found for the given Daftar Bank ID",
 			})
-
 			return
 		} else {
 			ctx.JSON(500, gin.H{
 				"error":   true,
-				"message": "Failed to retrieve fitur_jonas",
+				"message": "An error occurred while retrieving the Daftar Bank: " + err.Error(),
 			})
 
 			return
 		}
 	}
 
-	// Hapus file lama jika ada
-	if data.Icon != "" {
-		// Ambil nama file dari URL
-		fileName := filepath.Base(data.Icon)
-		oldFilePath := filepath.Join("./public/image-fitur", fileName)
+	imageDir := "./public/image-bank"
 
-		// Hapus file lama
+	if data.Icon != "" {
+		fileName := filepath.Base(data.Icon)
+		oldFilePath := filepath.Join(imageDir, fileName)
+
 		if err := os.Remove(oldFilePath); err != nil && !os.IsNotExist(err) {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
+			ctx.JSON(500, gin.H{
 				"error":   true,
 				"message": "Failed to delete old image: " + err.Error(),
 			})
@@ -163,12 +150,10 @@ func UpdateFiturJona(ctx *gin.Context) {
 		}
 	}
 
-	// Create directory if not exists
-	imageDir := "./public/image-fitur"
 	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
 		err = os.MkdirAll(imageDir, os.ModePerm)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
+			ctx.JSON(500, gin.H{
 				"error":   true,
 				"message": "Failed to create image directory: " + err.Error(),
 			})
@@ -176,13 +161,11 @@ func UpdateFiturJona(ctx *gin.Context) {
 		}
 	}
 
-	// Generate unique filename based on timestamp
 	fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
 	filepath := filepath.Join(imageDir, fileName)
 
-	// Save the file to the server
 	if err := ctx.SaveUploadedFile(file, filepath); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to save image: " + err.Error(),
 		})
@@ -190,57 +173,67 @@ func UpdateFiturJona(ctx *gin.Context) {
 	}
 
 	data.Nama = input.Nama
-	data.Icon = config.URL_HOST + "/images/" + fileName
+	data.Icon = config.URL_HOST + "/images-bank/" + fileName
+	data.Status = input.Status
 
-	// update data fitur jona
-	if err := databases.DB.Table("fitur_jonas").Where("id = ?", id).Updates(&data).Error; err != nil {
+	if err := databases.DB.Table("daftar_banks").Where("id = ?", ctx.Param("id")).Updates(&data).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
-			"message": "Failed to update fitur_jonas",
+			"message": "Failed to update Bank",
 		})
 		return
 	}
 
-	ctx.JSON(201, gin.H{
+	ctx.JSON(200, gin.H{
 		"error":   false,
 		"message": "Update data success",
 		"data":    data,
 	})
 }
 
-func DeleteFiturJona(ctx *gin.Context) {
-	var data models.FiturJona
-	id := ctx.Param("id")
+func DeleteDaftarBank(ctx *gin.Context) {
+	var data models.DaftarBank
 
-	if err := databases.DB.Table("fitur_jonas").Where("id = ?", id).First(&data).Error; err != nil {
+	if err := databases.DB.Table("daftar_banks").Where("id = ?", ctx.Param("id")).First(&data).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			ctx.JSON(404, gin.H{
 				"error":   true,
-				"message": "data fitur_jonas not found",
+				"message": "No subcategories found for the given Daftar Bank ID",
 			})
-
 			return
 		} else {
 			ctx.JSON(500, gin.H{
 				"error":   true,
-				"message": "Failed to retrieve fitur_jonas",
+				"message": "An error occurred while retrieving the Daftar Bank: " + err.Error(),
 			})
 
 			return
 		}
 	}
 
-	if err := databases.DB.Table("fitur_jonas").Where("id = ?", id).Delete(&data).Error; err != nil {
+	if data.Icon != "" {
+		fileName := filepath.Base(data.Icon)
+		oldFilePath := filepath.Join("./public/image-bank", fileName)
+
+		if err := os.Remove(oldFilePath); err != nil && !os.IsNotExist(err) {
+			ctx.JSON(500, gin.H{
+				"error":   true,
+				"message": "Failed to delete old image: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	if err := databases.DB.Table("daftar_banks").Where("id = ?", ctx.Param("id")).Delete(&data).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
-			"message": "Failed to delete fitur_jonas",
+			"message": "Failed to delete Bank",
 		})
-
 		return
 	}
 
 	ctx.JSON(200, gin.H{
 		"error":   false,
-		"message": "Delete data Fitur_jona success",
+		"message": "Delete data success",
 	})
 }
