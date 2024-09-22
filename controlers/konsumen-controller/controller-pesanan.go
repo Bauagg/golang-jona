@@ -37,6 +37,7 @@ func ListPesananKonsumen(ctx *gin.Context) {
 				return db.Preload("Fitur")
 			})
 		}).
+		Preload("Address").
 		Limit(limitInt). // Terapkan limit
 		Offset(offset).  // Terapkan offset
 		Find(&data).
@@ -82,6 +83,7 @@ func DetailPesananKonsumen(ctx *gin.Context) {
 				return db.Preload("Fitur")
 			})
 		}).
+		Preload("Address").
 		First(&data).
 		Error
 
@@ -117,7 +119,9 @@ func CreatePesanan(ctx *gin.Context) {
 	var dataSubCategory models.SubCategory
 	var dataCategory models.CaegoryUtama
 	var dataBank models.DaftarBank
+	var address models.Address
 	var payloadBank utils.BankTransferPayload
+
 	user_id, _ := ctx.Get("userID")
 
 	if errInput := ctx.ShouldBind(&input); errInput != nil {
@@ -126,6 +130,14 @@ func CreatePesanan(ctx *gin.Context) {
 			"message": errInput.Error(),
 		})
 
+		return
+	}
+
+	if err := databases.DB.Table("addresses").Where("id = ?", input.IdAddress).First(&address).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Address not found",
+		})
 		return
 	}
 
@@ -186,6 +198,7 @@ func CreatePesanan(ctx *gin.Context) {
 	dataPesanan.Status = "menunggu"
 	dataPesanan.TransactionMidtrans = response.TransactionID
 	dataPesanan.VaBank = response.VANumbers[0].VANumber
+	dataPesanan.IdAddress = uint64(address.ID)
 
 	if err := databases.DB.Table("pesanan_konsumens").Create(&dataPesanan).Error; err != nil {
 		ctx.JSON(500, gin.H{

@@ -5,7 +5,6 @@ import "gorm.io/gorm"
 type Address struct {
 	gorm.Model
 	UserID       uint64  `json:"user_id" binding:"required"` // Foreign key linking to a User, if applicable
-	User         Users   `gorm:"foreignKey:UserID"`          // Establishes the relationship
 	Street       string  `gorm:"size:255;not null" json:"street"`
 	City         string  `gorm:"size:100;not null" json:"city"`
 	State        string  `gorm:"size:100;not null" json:"state"`

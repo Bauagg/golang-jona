@@ -14,9 +14,6 @@ func GetAddress(ctx *gin.Context) {
 	userId, _ := ctx.Get("userID")
 
 	err := databases.DB.Table("addresses").
-		Preload("User", func(db *gorm.DB) *gorm.DB {
-			return db.Select("ID, email, role")
-		}).
 		Where("addresses.user_id = ?", userId).
 		Find(&addresses).Error
 
@@ -41,9 +38,7 @@ func DetailAddress(ctx *gin.Context) {
 	userId, _ := ctx.Get("userID")
 	addressID := ctx.Param("id")
 
-	err := databases.DB.Table("addresses").Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select("ID, email, role, nama, profile")
-	}).
+	err := databases.DB.Table("addresses").
 		Where("id = ? AND user_id = ?", addressID, userId).First(&addresses).Error
 
 	if err != nil {
