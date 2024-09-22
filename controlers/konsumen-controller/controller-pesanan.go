@@ -5,16 +5,74 @@ import (
 	models "backend-jona-golang/models/model-global"
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func DetailPesananKonsumen(ctx *gin.Context) {
-	var data modelkonsumens.PesananKonsumen
+func ListPesananKonsumen(ctx *gin.Context) {
+	var data []modelkonsumens.PesananKonsumen
+	userId, _ := ctx.Get("userID")
+
+	// Ambil parameter limit dan page dari query string, atau gunakan default jika tidak ada
+	limit := ctx.DefaultQuery("limit", "10")
+	page := ctx.DefaultQuery("page", "1")
+
+	// Konversi limit dan page menjadi integer
+	limitInt, _ := strconv.Atoi(limit)
+	pageInt, _ := strconv.Atoi(page)
+
+	// Hitung offset berdasarkan limit dan page
+	offset := (pageInt - 1) * limitInt
 
 	err := databases.DB.Table("pesanan_konsumens").
-		Where("id = ?", ctx.Param("id")).
+		Where("user_id = ?", userId).
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select("ID, email, role, nama, profile")
+		}).
+		Preload("Bank").
+		Preload("Jasa", func(db *gorm.DB) *gorm.DB {
+			return db.Preload("CaegoryUtama", func(db *gorm.DB) *gorm.DB {
+				return db.Preload("Fitur")
+			})
+		}).
+		Limit(limitInt). // Terapkan limit
+		Offset(offset).  // Terapkan offset
+		Find(&data).
+		Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(404, gin.H{
+				"error":   true,
+				"message": "Pesanan not found",
+			})
+
+			return
+		} else {
+			ctx.JSON(500, gin.H{
+				"error":   true,
+				"message": "Failed to retrieve Pesanan",
+			})
+
+			return
+		}
+	}
+
+	ctx.JSON(200, gin.H{
+		"error":   false,
+		"message": "Detail pesanan ditemukan",
+		"data":    data,
+	})
+}
+
+func DetailPesananKonsumen(ctx *gin.Context) {
+	var data modelkonsumens.PesananKonsumen
+	userId, _ := ctx.Get("userID")
+
+	err := databases.DB.Table("pesanan_konsumens").
+		Where("id = ? AND user_id = ?", ctx.Param("id"), userId).
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("ID, email, role, nama, profile")
 		}).
