@@ -35,7 +35,7 @@ func VerifyOTPPassword(ctx *gin.Context) {
 		if err == gorm.ErrRecordNotFound {
 			ctx.JSON(400, gin.H{
 				"error":   true,
-				"message": "Invalid OTP or OTP has expired. ========>",
+				"message": "Invalid OTP or OTP has expired.",
 			})
 
 			return
