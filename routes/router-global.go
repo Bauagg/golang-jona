@@ -16,7 +16,8 @@ func RouterIndex(app *gin.Engine) {
 
 	// Router lupa Password
 	router.PUT("/api/jona/v-1/email", controlers.CreateEmailOTP)
-	router.PUT("/api/jona/v-1/password", middleware.AuthMiddleware(), controlers.UpdatePassword)
+	router.PUT("/api/jona/v-1/password/:id", controlers.UpdatePassword)
+	router.POST("/api/jona/v-1/otp-password/:id", controlers.VerifyOTPPassword)
 
 	// Router untuk OTP
 	router.GET("/api/jona/v-1/otp", middleware.AuthMiddleware(), controlers.SendEmailOtp)

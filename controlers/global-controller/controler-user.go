@@ -296,26 +296,15 @@ func CreateEmailOTP(ctx *gin.Context) {
 		return
 	}
 
-	token, err := utils.SignToken(uint64(data.ID), data.Email, string(data.Role))
-
-	if err != nil {
-		ctx.JSON(500, gin.H{ // Status 500 for Internal Server Error
-			"error":   true,
-			"message": "Failed to generate token.",
-		})
-		return
-	}
-
 	ctx.JSON(200, gin.H{
 		"error":   false,
 		"message": "OTP updated successfully.",
-		"token":   token,
+		"userId":  data.ID,
 	})
 }
 
 func UpdatePassword(ctx *gin.Context) {
 	var input models.InputPassword
-	user_id, _ := ctx.Get("userID")
 
 	if errInput := ctx.ShouldBind(&input); errInput != nil {
 		ctx.JSON(400, gin.H{
@@ -338,7 +327,7 @@ func UpdatePassword(ctx *gin.Context) {
 
 	hashedPassword := utils.HashPassword(input.Password)
 
-	if err := databases.DB.Table("users").Where("id = ?", user_id).Update("password", hashedPassword).Error; err != nil {
+	if err := databases.DB.Table("users").Where("id = ?", ctx.Param("id")).Update("password", hashedPassword).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to update the password: " + err.Error(),

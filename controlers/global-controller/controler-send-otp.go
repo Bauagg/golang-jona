@@ -11,6 +11,51 @@ import (
 	"gorm.io/gorm"
 )
 
+func VerifyOTPPassword(ctx *gin.Context) {
+	type InputOtp struct {
+		NumberOtp uint64 `json:"number_otp" binding:"required" gorm:"unique"`
+	}
+
+	var input InputOtp
+
+	// Bind input JSON to struct
+	if errInput := ctx.ShouldBind(&input); errInput != nil {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": errInput.Error(),
+		})
+
+		return
+	}
+
+	// Check if OTP exists and is valid
+	var otp models.OTP
+	err := databases.DB.Table("otps").Where("number_otp = ? AND user_id = ? AND expires_at > ?", input.NumberOtp, ctx.Param("id"), time.Now()).First(&otp).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(400, gin.H{
+				"error":   true,
+				"message": "Invalid OTP or OTP has expired. ========>",
+			})
+
+			return
+		} else {
+			ctx.JSON(500, gin.H{
+				"error":   true,
+				"message": "Internal server error.",
+			})
+
+			return
+		}
+	}
+
+	// If OTP is valid, return success
+	ctx.JSON(200, gin.H{
+		"error":   false,
+		"message": "OTP verified successfully.",
+	})
+}
+
 func VerifyOTP(ctx *gin.Context) {
 	type InputOtp struct {
 		NumberOtp uint64 `json:"number_otp" binding:"required" gorm:"unique"`

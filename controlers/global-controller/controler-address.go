@@ -13,16 +13,26 @@ func GetAddress(ctx *gin.Context) {
 	var addresses []models.Address
 	userId, _ := ctx.Get("userID")
 
-	err := databases.DB.Table("addresses").
-		Where("addresses.user_id = ?", userId).
-		Find(&addresses).Error
+	// Ambil status dari query parameter (optional)
+	status := ctx.Query("status")
+
+	// Mulai query database
+	query := databases.DB.Table("addresses").
+		Where("user_id = ?", userId)
+
+	// Jika status diberikan dalam query parameter, tambahkan ke filter
+	if status != "" {
+		query = query.Where("status = ? ", status)
+	}
+
+	// Eksekusi query
+	err := query.Find(&addresses).Error
 
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to retrieve addresses",
 		})
-
 		return
 	}
 
@@ -98,6 +108,7 @@ func CreateAddress(ctx *gin.Context) {
 		return
 	}
 
+	// Buat objek address baru
 	data := models.Address{
 		UserID:       uint64(User.ID),
 		Street:       input.Street,
@@ -110,6 +121,15 @@ func CreateAddress(ctx *gin.Context) {
 		DetailAlamat: input.DetailAlamat,
 		Latitude:     input.Latitude,
 		Longitude:    input.Longitude,
+	}
+
+	// Cek apakah ada alamat dengan status "utama"
+	var existingAddress models.Address
+	if err := databases.DB.Table("addresses").Where("user_id = ? AND status = ?", user_id, "utama").First(&existingAddress).Error; err != nil {
+		// Hanya jika tidak ada alamat utama, set status menjadi "utama"
+		if err == gorm.ErrRecordNotFound {
+			data.Status = "utama"
+		}
 	}
 
 	if err := databases.DB.Table("addresses").Create(&data).Error; err != nil {
