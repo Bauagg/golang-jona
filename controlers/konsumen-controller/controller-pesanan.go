@@ -6,6 +6,7 @@ import (
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -179,6 +180,7 @@ func CreatePesanan(ctx *gin.Context) {
 	payloadBank.PaymentType = "bank_transfer"
 	payloadBank.TransactionDetails.GrossAmount = dataSubCategory.Harga
 	payloadBank.TransactionDetails.OrderID = orderID
+	payloadBank.TransactionDetails.ExpireTime = time.Now().Add(30 * time.Minute).Format(time.RFC3339) // Set kadaluarsa 30 menit
 	payloadBank.BankTransfer.Bank = dataBank.Nama
 
 	response, err := utils.VaNumberBank(payloadBank)
@@ -208,10 +210,85 @@ func CreatePesanan(ctx *gin.Context) {
 		return
 	}
 
+	// Create a new notification record
+	newNotification := modelkonsumens.NotifikasiPembayaran{
+		StatusPesanan: modelkonsumens.NotifikasiMenunggu,
+		Description:   "Waktu Pembayaran 30:00",
+		TransactionID: response.TransactionID,
+		UserId:        uint64(dataUser.ID),
+	}
+	if err := databases.DB.Create(&newNotification).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to create notification",
+		})
+		return
+	}
+
 	// Mengirimkan respons berhasil kepada pengguna
 	ctx.JSON(201, gin.H{
 		"error":   false,
 		"message": "Order created successfully",
 		"data":    dataPesanan,
+	})
+}
+
+func NotifikasiPembayaran(ctx *gin.Context) {
+	var notifikasi modelkonsumens.NotifikasiPembayaran
+	var pesanan modelkonsumens.PesananKonsumen
+
+	// Bind JSON body to the NotifikasiPembayaran struct
+	if err := ctx.ShouldBindJSON(&notifikasi); err != nil {
+		ctx.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Example: Update the order status based on the notification received
+	if err := databases.DB.Table("pesanan_konsumens").Where("transaction_midtrans = ?", notifikasi.TransactionID).First(&pesanan).Error; err != nil {
+		ctx.JSON(404, gin.H{
+			"error":   true,
+			"message": "Order not found",
+		})
+		return
+	}
+
+	// Update the order status based on the notification status
+	switch notifikasi.StatusPesanan {
+	case modelkonsumens.NotifikasiBerhasil:
+		pesanan.Status = modelkonsumens.Berhasil
+	case modelkonsumens.NotifikasiBatal:
+		pesanan.Status = modelkonsumens.PesananBatal
+	default:
+		pesanan.Status = modelkonsumens.Menunggu
+	}
+
+	// Save the updated order status
+	if err := databases.DB.Table("pesanan_konsumens").Save(&pesanan).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update order status",
+		})
+		return
+	}
+
+	// Create a new notification record
+	newNotification := modelkonsumens.NotifikasiPembayaran{
+		StatusPesanan: notifikasi.StatusPesanan,
+		Description:   "Jona lagi cari jasa terbaik buat kamu",
+		TransactionID: notifikasi.TransactionID,
+		UserId:        pesanan.UserID,
+	}
+	if err := databases.DB.Create(&newNotification).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to create notification",
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"error":   true,
+		"message": "Notification processed successfully",
+		"data":    newNotification,
 	})
 }

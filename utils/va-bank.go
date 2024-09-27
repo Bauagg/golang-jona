@@ -14,6 +14,7 @@ type BankTransferPayload struct {
 	TransactionDetails struct {
 		OrderID     string `json:"order_id"`
 		GrossAmount uint64 `json:"gross_amount"`
+		ExpireTime  string `json:"expire_time"`
 	} `json:"transaction_details"`
 	BankTransfer struct {
 		Bank string `json:"bank"`

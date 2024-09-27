@@ -18,6 +18,7 @@ func Migrate() {
 		&models.SubCategory{},
 		&models.DaftarBank{},
 		&modelkonsumens.PesananKonsumen{},
+		&modelkonsumens.NotifikasiPembayaran{},
 	)
 	if err != nil {
 		panic("Failed to migrate: " + err.Error())

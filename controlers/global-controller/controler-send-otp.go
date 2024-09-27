@@ -154,3 +154,71 @@ func SendEmailOtp(ctx *gin.Context) {
 		"message": "OTP updated successfully.",
 	})
 }
+
+func SendEmailOtpPassword(ctx *gin.Context) {
+	var data models.Users
+
+	if err := databases.DB.Table("users").Where("id = ?", ctx.Param("id")).First(&data).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(401, gin.H{ // Status 401 untuk Unauthorized
+				"error":   true,
+				"message": "Invalid email or password.",
+			})
+			return
+		} else {
+			ctx.JSON(500, gin.H{ // Status 500 untuk Internal Server Error
+				"error":   true,
+				"message": "Internal server error.",
+			})
+			return
+		}
+	}
+
+	// Generate a random 4-digit OTP
+	rand.Seed(time.Now().UnixNano())
+	randomOTP := rand.Intn(9000) + 1000
+
+	errSendEmail := utils.SendEmail(data.Email, uint64(randomOTP))
+	if errSendEmail != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to send OTP email.",
+		})
+
+		return
+	}
+
+	// Check if OTP already exists
+	var existingOtp models.OTP
+	errFindOtp := databases.DB.Table("otps").Where("user_id = ?", data.ID).First(&existingOtp).Error
+	if errFindOtp != nil {
+		ctx.JSON(404, gin.H{
+			"error":   true,
+			"message": "OTP not found for the user.",
+		})
+		return
+	}
+
+	// OTP exists, update it
+	existingOtp.NumberOtp = uint64(randomOTP)
+	existingOtp.ExpiresAt = time.Now().Add(5 * time.Minute)
+
+	errUpdateOtp := databases.DB.Table("otps").Where("user_id = ? AND id = ?", existingOtp.UserId, existingOtp.ID).Updates(models.OTP{
+		NumberOtp: uint64(randomOTP),
+		ExpiresAt: time.Now().Add(5 * time.Minute),
+	}).Error
+
+	if errUpdateOtp != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update OTP.",
+			"data":    existingOtp,
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"error":   false,
+		"message": "OTP updated successfully.",
+	})
+}

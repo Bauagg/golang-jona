@@ -17,4 +17,6 @@ func RouterKonsumen(app *gin.Engine) {
 	router.GET("/api/jona/v-1/pesanan-konsumen", middleware.AuthMiddleware(), konsumencontrollers.ListPesananKonsumen)
 	router.GET("/api/jona/v-1/pesanan-konsumen/:id", middleware.AuthMiddleware(), konsumencontrollers.DetailPesananKonsumen)
 	router.POST("/api/jona/v-1/pesanan-konsumen", middleware.AuthMiddleware(), konsumencontrollers.CreatePesanan)
+	// Router Notofikasi Pembayaran
+	router.POST("/api/jona/v-1/notifikasi-pembayaran", konsumencontrollers.NotifikasiPembayaran)
 }

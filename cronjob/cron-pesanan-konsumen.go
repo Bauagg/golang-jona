@@ -20,5 +20,14 @@ func UpdateExpiredOrders() {
 	for _, order := range pesanan {
 		order.Status = modelkonsumens.PesananBatal
 		databases.DB.Save(&order)
+
+		newNotification := modelkonsumens.NotifikasiPembayaran{
+			Description:   "Waktu Pembayaran kamu habis",
+			UserId:        order.UserID,
+			StatusPesanan: modelkonsumens.NotifikasiBatal,
+			TransactionID: order.TransactionMidtrans,
+		}
+
+		databases.DB.Table("notifikasi_pembayarans").Create(&newNotification)
 	}
 }
