@@ -184,7 +184,7 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 	payloadBank.TransactionDetails.GrossAmount = dataSubCategory.Harga
 	payloadBank.TransactionDetails.OrderID = orderID
 	payloadBank.BankTransfer.Bank = dataBank.Type
-	payloadBank.CustomExpiry.OrderTime = time.Now().Format("2006-01-02 15:04:05 +0700")
+	payloadBank.CustomExpiry.OrderTime = time.Now().In(time.FixedZone("WIB", 7*60*60)).Format("2006-01-02 15:04:05 +0700")
 	payloadBank.CustomExpiry.ExpiryDuration = 30
 	payloadBank.CustomExpiry.Unit = "minutes"
 
