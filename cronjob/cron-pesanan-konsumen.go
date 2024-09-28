@@ -11,7 +11,7 @@ func UpdateExpiredOrders() {
 	var pesanan []modelkonsumens.PesananKonsumen
 
 	// Cari pesanan yang statusnya "menunggu" dan dibuat lebih dari 30 menit yang lalu
-	expirationTime := time.Now().Add(-1 * time.Minute)
+	expirationTime := time.Now().Add(-30 * time.Minute)
 
 	databases.DB.Table("pesanan_konsumens").
 		Where("status = ? AND created_at < ?", modelkonsumens.Menunggu, expirationTime).
