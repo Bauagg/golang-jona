@@ -7,7 +7,6 @@ import (
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
 	"encoding/json"
-	"log"
 	"strconv"
 	"time"
 
@@ -187,8 +186,6 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 	payloadBank.CustomExpiry.OrderTime = time.Now().In(time.FixedZone("WIB", 7*60*60)).Format("2006-01-02 15:04:05 +0700")
 	payloadBank.CustomExpiry.ExpiryDuration = 30
 	payloadBank.CustomExpiry.Unit = "minutes"
-
-	log.Print(payloadBank)
 
 	response, err := utils.VaNumberBank(payloadBank)
 	if err != nil {

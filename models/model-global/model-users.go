@@ -21,7 +21,7 @@ type Users struct {
 	Password           string `json:"password" binding:"required"`                                                                       // Wajib diisi, disembunyikan saat diubah ke JSON
 	KonfirmasiPassword string `json:"konfirmasi_password" binding:"required" gorm:"-"`                                                   // Wajib diisi, tidak disimpan ke DB
 	Role               Role   `json:"role" binding:"required" gorm:"type:enum('konsumen', 'jasa', 'driver', 'toko');default:'konsumen'"` // Wajib diisi
-	Profile            string `json:"profile" gorm:"null"`
+	Profile            string `json:"profile" gorm:"default:'null'"`
 }
 
 // Input Login User
