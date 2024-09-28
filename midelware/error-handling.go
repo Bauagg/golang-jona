@@ -19,7 +19,7 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 				// Kirim respons error
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error":   true,
-					"message": "Internal server error",
+					"message": "Internal server error ===>",
 				})
 				c.Abort()
 			}
