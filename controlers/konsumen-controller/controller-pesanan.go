@@ -6,6 +6,7 @@ import (
 	models "backend-jona-golang/models/model-global"
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -114,7 +115,7 @@ func DetailPesananKonsumen(ctx *gin.Context) {
 	})
 }
 
-func CreatePesanan(ctx *gin.Context) {
+func CreatePesananBersihBersih(ctx *gin.Context) {
 	var input modelkonsumens.InputPesananKonsumen
 	var dataPesanan modelkonsumens.PesananKonsumen
 	var dataUser models.Users
@@ -218,7 +219,7 @@ func CreatePesanan(ctx *gin.Context) {
 		TransactionID: response.TransactionID,
 		UserId:        uint64(dataUser.ID),
 	}
-	if err := databases.DB.Create(&newNotification).Error; err != nil {
+	if err := databases.DB.Table("notifikasi_pembayarans").Create(&newNotification).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to create notification",
@@ -236,7 +237,8 @@ func CreatePesanan(ctx *gin.Context) {
 
 func NotifikasiPembayaran(ctx *gin.Context) {
 	var notifikasi modelkonsumens.MidtransNotification
-	// var pesanan modelkonsumens.PesananKonsumen
+	var pesanan modelkonsumens.PesananKonsumen
+	var dataNotifikasi modelkonsumens.NotifikasiPembayaran
 
 	// Bind JSON body to the NotifikasiPembayaran struct
 	if err := ctx.ShouldBindJSON(&notifikasi); err != nil {
@@ -254,6 +256,91 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 			"message": "Invalid signature. Notification rejected.",
 		})
 		return
+	}
+
+	if err := databases.DB.Table("pesanan_konsumens").Where("code_pesanan = ? AND transaction_midtrans = ?", notifikasi.OrderID, notifikasi.TransactionID).First(&pesanan).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(404, gin.H{
+				"error":   true,
+				"message": "Order not found. Please check the Order ID and Transaction ID.",
+			})
+			return
+		}
+
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Internal server error while retrieving the order. Please try again later.",
+		})
+		return
+	}
+
+	err := databases.DB.Table("notifikasi_pembayarans").
+		Where("transaction_id = ? AND order_id = ? AND user_id = ?", notifikasi.TransactionID, notifikasi.OrderID, pesanan.UserID).
+		First(&dataNotifikasi).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(404, gin.H{
+				"error":   true,
+				"message": "Notifikasi pembayaran tidak ditemukan. Mohon periksa ID Transaksi dan ID Pesanan yang Anda masukkan.",
+			})
+			return
+		}
+
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Terjadi kesalahan internal saat mengambil notifikasi pembayaran. Mohon coba lagi nanti.",
+		})
+		return
+	}
+
+	if notifikasi.FraudStatus == "capture" {
+		pesanan.Status = modelkonsumens.Berhasil
+		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiBerhasil
+		dataNotifikasi.Description = "Jona lagi cari jasa terbaik buat kamu."
+	} else if notifikasi.FraudStatus == "expire" {
+		pesanan.Status = modelkonsumens.Kadaluarsa
+		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiKadaluarsa
+		dataNotifikasi.Description = "Waktu pembayaran telah habis, silakan ulangi transaksi."
+	} else if notifikasi.FraudStatus == "failure" {
+		pesanan.Status = modelkonsumens.ErrorPesanan
+		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiGagalPembayaran
+		dataNotifikasi.Description = "Terjadi kesalahan saat memproses pembayaran, silakan coba lagi."
+	}
+
+	if err := databases.DB.Table("notifikasi_pembayarans").Save(&dataNotifikasi).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update the Notifikasi. Please try again later.",
+		})
+		return
+	}
+
+	// Save the updated order status
+	if err := databases.DB.Table("pesanan_konsumens").Save(&pesanan).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to update the order status. Please try again later.",
+		})
+		return
+	}
+
+	// Siapkan data untuk dikirim ke klien
+	notificationData := NotificationDataTransaksi{
+		OrderID:       notifikasi.OrderID,
+		TransactionID: notifikasi.TransactionID,
+	}
+
+	// Konversi ke JSON
+	notificationJSON, err := json.Marshal(notificationData)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "Failed to marshal notification data"})
+		return
+	}
+
+	// Kirim notifikasi ke klien yang terhubung
+	for _, channel := range clients {
+		channel <- string(notificationJSON) // Kirim data JSON
 	}
 
 	ctx.JSON(200, gin.H{

@@ -18,7 +18,7 @@ func UpdateExpiredOrders() {
 
 		// Update status menjadi "pesanan batal" untuk pesanan yang kedaluwarsa
 	for _, order := range pesanan {
-		order.Status = modelkonsumens.PesananBatal
+		order.Status = modelkonsumens.Kadaluarsa
 		databases.DB.Save(&order)
 
 		newNotification := modelkonsumens.NotifikasiPembayaran{
