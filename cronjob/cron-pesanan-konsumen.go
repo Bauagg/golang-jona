@@ -28,6 +28,6 @@ func UpdateExpiredOrders() {
 			TransactionID: order.TransactionMidtrans,
 		}
 
-		databases.DB.Table("notifikasi_pembayarans").Create(&newNotification)
+		databases.DB.Table("notifikasi_pembayarans").Where("transaction_id = ?", order.TransactionMidtrans).Updates(&newNotification)
 	}
 }

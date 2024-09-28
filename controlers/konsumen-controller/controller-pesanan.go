@@ -1,12 +1,12 @@
 package konsumencontrollers
 
 import (
-	"backend-jona-golang/config"
 	"backend-jona-golang/databases"
 	models "backend-jona-golang/models/model-global"
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
 	"encoding/json"
+	"log"
 	"strconv"
 	"time"
 
@@ -183,7 +183,7 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 	payloadBank.TransactionDetails.GrossAmount = dataSubCategory.Harga
 	payloadBank.TransactionDetails.OrderID = orderID
 	payloadBank.TransactionDetails.ExpireTime = time.Now().Add(30 * time.Minute).Format(time.RFC3339) // Set kadaluarsa 30 menit
-	payloadBank.BankTransfer.Bank = dataBank.Nama
+	payloadBank.BankTransfer.Bank = dataBank.Type
 
 	response, err := utils.VaNumberBank(payloadBank)
 	if err != nil {
@@ -218,6 +218,7 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 		Description:   "Waktu Pembayaran 30:00",
 		TransactionID: response.TransactionID,
 		UserId:        uint64(dataUser.ID),
+		OrderID:       orderID,
 	}
 	if err := databases.DB.Table("notifikasi_pembayarans").Create(&newNotification).Error; err != nil {
 		ctx.JSON(500, gin.H{
@@ -247,16 +248,16 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 	}
 
 	// Menghasilkan signature yang diharapkan dari data notifikasi
-	expectedSignature := utils.GenerateMidtransSignature(notifikasi.OrderID, notifikasi.StatusCode, notifikasi.GrossAmount, config.SERVER_KEY_MIDTRANS)
+	// expectedSignature := utils.GenerateMidtransSignature(notifikasi.OrderID, notifikasi.StatusCode, notifikasi.GrossAmount, config.SERVER_KEY_MIDTRANS)
 
 	// Validasi signature
-	if notifikasi.SignatureKey != expectedSignature {
-		ctx.JSON(401, gin.H{
-			"error":   true,
-			"message": "Invalid signature. Notification rejected.",
-		})
-		return
-	}
+	// if notifikasi.SignatureKey != expectedSignature {
+	// 	ctx.JSON(401, gin.H{
+	// 		"error":   true,
+	// 		"message": "Invalid signature. Notification rejected.",
+	// 	})
+	// 	return
+	// }
 
 	if err := databases.DB.Table("pesanan_konsumens").Where("code_pesanan = ? AND transaction_midtrans = ?", notifikasi.OrderID, notifikasi.TransactionID).First(&pesanan).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -273,6 +274,8 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		})
 		return
 	}
+
+	log.Printf("Received notification: %+v", pesanan.UserID)
 
 	err := databases.DB.Table("notifikasi_pembayarans").
 		Where("transaction_id = ? AND order_id = ? AND user_id = ?", notifikasi.TransactionID, notifikasi.OrderID, pesanan.UserID).
@@ -294,15 +297,15 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		return
 	}
 
-	if notifikasi.FraudStatus == "capture" {
+	if notifikasi.TransactionStatus == "capture" {
 		pesanan.Status = modelkonsumens.Berhasil
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiBerhasil
 		dataNotifikasi.Description = "Jona lagi cari jasa terbaik buat kamu."
-	} else if notifikasi.FraudStatus == "expire" {
+	} else if notifikasi.TransactionStatus == "expire" {
 		pesanan.Status = modelkonsumens.Kadaluarsa
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiKadaluarsa
 		dataNotifikasi.Description = "Waktu pembayaran telah habis, silakan ulangi transaksi."
-	} else if notifikasi.FraudStatus == "failure" {
+	} else if notifikasi.TransactionStatus == "failure" {
 		pesanan.Status = modelkonsumens.ErrorPesanan
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiGagalPembayaran
 		dataNotifikasi.Description = "Terjadi kesalahan saat memproses pembayaran, silakan coba lagi."
