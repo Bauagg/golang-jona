@@ -1,12 +1,12 @@
 package konsumencontrollers
 
 import (
+	"backend-jona-golang/config"
 	"backend-jona-golang/databases"
 	models "backend-jona-golang/models/model-global"
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
 	"encoding/json"
-	"log"
 	"strconv"
 	"time"
 
@@ -248,16 +248,16 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 	}
 
 	// Menghasilkan signature yang diharapkan dari data notifikasi
-	// expectedSignature := utils.GenerateMidtransSignature(notifikasi.OrderID, notifikasi.StatusCode, notifikasi.GrossAmount, config.SERVER_KEY_MIDTRANS)
+	expectedSignature := utils.GenerateMidtransSignature(notifikasi.OrderID, notifikasi.StatusCode, notifikasi.GrossAmount, config.SERVER_KEY_MIDTRANS)
 
 	// Validasi signature
-	// if notifikasi.SignatureKey != expectedSignature {
-	// 	ctx.JSON(401, gin.H{
-	// 		"error":   true,
-	// 		"message": "Invalid signature. Notification rejected.",
-	// 	})
-	// 	return
-	// }
+	if notifikasi.SignatureKey != expectedSignature {
+		ctx.JSON(401, gin.H{
+			"error":   true,
+			"message": "Invalid signature. Notification rejected.",
+		})
+		return
+	}
 
 	if err := databases.DB.Table("pesanan_konsumens").Where("code_pesanan = ? AND transaction_midtrans = ?", notifikasi.OrderID, notifikasi.TransactionID).First(&pesanan).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -274,8 +274,6 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		})
 		return
 	}
-
-	log.Printf("Received notification: %+v", pesanan.UserID)
 
 	err := databases.DB.Table("notifikasi_pembayarans").
 		Where("transaction_id = ? AND order_id = ? AND user_id = ?", notifikasi.TransactionID, notifikasi.OrderID, pesanan.UserID).
@@ -297,7 +295,7 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		return
 	}
 
-	if notifikasi.TransactionStatus == "capture" {
+	if notifikasi.TransactionStatus == "capture" || notifikasi.TransactionStatus == "settlement" {
 		pesanan.Status = modelkonsumens.Berhasil
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiBerhasil
 		dataNotifikasi.Description = "Jona lagi cari jasa terbaik buat kamu."
@@ -305,7 +303,7 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		pesanan.Status = modelkonsumens.Kadaluarsa
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiKadaluarsa
 		dataNotifikasi.Description = "Waktu pembayaran telah habis, silakan ulangi transaksi."
-	} else if notifikasi.TransactionStatus == "failure" {
+	} else if notifikasi.TransactionStatus == "failure" || notifikasi.TransactionStatus == "deny" {
 		pesanan.Status = modelkonsumens.ErrorPesanan
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiGagalPembayaran
 		dataNotifikasi.Description = "Terjadi kesalahan saat memproses pembayaran, silakan coba lagi."
