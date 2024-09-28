@@ -182,8 +182,10 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 	payloadBank.PaymentType = "bank_transfer"
 	payloadBank.TransactionDetails.GrossAmount = dataSubCategory.Harga
 	payloadBank.TransactionDetails.OrderID = orderID
-	payloadBank.TransactionDetails.ExpireTime = time.Now().Add(30 * time.Minute).Format(time.RFC3339) // Set kadaluarsa 30 menit
 	payloadBank.BankTransfer.Bank = dataBank.Type
+	payloadBank.CustomExpiry.OrderTime = time.Now().Format("2006-01-02 15:04:05 +0700")
+	payloadBank.CustomExpiry.ExpiryDuration = 30
+	payloadBank.CustomExpiry.Unit = "minutes"
 
 	response, err := utils.VaNumberBank(payloadBank)
 	if err != nil {
