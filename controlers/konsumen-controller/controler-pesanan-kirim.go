@@ -11,7 +11,7 @@ import (
 )
 
 func CreatePesananJasaKirim(ctx *gin.Context) {
-	var input modelkonsumens.InputPesananKonsumen
+	var input modelkonsumens.InputPesananJasaKirimKonsumen
 	var dataPesanan modelkonsumens.PesananKonsumen
 	var dataUser models.Users
 	var dataSubCategory models.SubCategory
@@ -47,7 +47,7 @@ func CreatePesananJasaKirim(ctx *gin.Context) {
 		return
 	}
 
-	if err := databases.DB.Table("sub_categories").Where("id = ?", input.JasaBersiId).First(&dataSubCategory).Error; err != nil {
+	if err := databases.DB.Table("sub_categories").Where("id = ?", input.JasaId).First(&dataSubCategory).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Sub Categories not found",
@@ -94,12 +94,13 @@ func CreatePesananJasaKirim(ctx *gin.Context) {
 	// Simpan data pesanan ke dalam database
 	dataPesanan.UserID = uint64(dataUser.ID)
 	dataPesanan.MetodePembayaran = uint64(dataBank.ID)
-	dataPesanan.JasaBersiId = uint64(dataSubCategory.ID)
+	dataPesanan.JasaId = uint64(dataSubCategory.ID)
 	dataPesanan.CodePesanan = orderID
 	dataPesanan.Status = "menunggu"
 	dataPesanan.TransactionMidtrans = response.TransactionID
 	dataPesanan.VaBank = response.VANumbers[0].VANumber
 	dataPesanan.IdAddress = uint64(address.ID)
+	dataPesanan.AlamatTujuan = input.IdAlamatTujuan
 
 	if err := databases.DB.Table("pesanan_konsumens").Create(&dataPesanan).Error; err != nil {
 		ctx.JSON(500, gin.H{

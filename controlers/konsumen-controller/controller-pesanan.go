@@ -135,14 +135,6 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 		return
 	}
 
-	if err := databases.DB.Table("addresses").Where("id = ?", input.IdAddress).First(&address).Error; err != nil {
-		ctx.JSON(500, gin.H{
-			"error":   true,
-			"message": "Address not found",
-		})
-		return
-	}
-
 	if err := databases.DB.Table("users").Where("id = ?", user_id).First(&dataUser).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
@@ -151,7 +143,15 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 		return
 	}
 
-	if err := databases.DB.Table("sub_categories").Where("id = ?", input.JasaBersiId).First(&dataSubCategory).Error; err != nil {
+	if err := databases.DB.Table("addresses").Where("id = ? AND user_id = ?", input.IdAddress, dataUser.ID).First(&address).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Address not found",
+		})
+		return
+	}
+
+	if err := databases.DB.Table("sub_categories").Where("id = ?", input.JasaId).First(&dataSubCategory).Error; err != nil {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Sub Categories not found",
@@ -198,7 +198,7 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 	// Simpan data pesanan ke dalam database
 	dataPesanan.UserID = uint64(dataUser.ID)
 	dataPesanan.MetodePembayaran = uint64(dataBank.ID)
-	dataPesanan.JasaBersiId = uint64(dataSubCategory.ID)
+	dataPesanan.JasaId = uint64(dataSubCategory.ID)
 	dataPesanan.CodePesanan = orderID
 	dataPesanan.Status = "menunggu"
 	dataPesanan.TransactionMidtrans = response.TransactionID
@@ -245,7 +245,7 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 	// Bind JSON body to the NotifikasiPembayaran struct
 	if err := ctx.ShouldBindJSON(&notifikasi); err != nil {
 		ctx.JSON(400, gin.H{
-			"error": true,
+			"error":   true,
 			"message": err.Error(),
 		})
 		return

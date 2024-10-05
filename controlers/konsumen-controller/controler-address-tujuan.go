@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func DetailAddressTujuan(ctx *gin.Context) {
+func DetailAddressTujuans(ctx *gin.Context) {
 	var data modelkonsumens.AddressTujuna
 
 	if err := databases.DB.Table("address_tujunas").Where("id = ?", ctx.Param("id")).First(&data).Error; err != nil {
@@ -72,7 +72,7 @@ func CreateAddressTujuan(ctx *gin.Context) {
 	})
 }
 
-func UpdateAddressTujuan(ctx *gin.Context) {
+func UpdateAddressTujuans(ctx *gin.Context) {
 	var input modelkonsumens.PayloadAddressTujuan
 	var data modelkonsumens.AddressTujuna
 

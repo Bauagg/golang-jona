@@ -11,7 +11,6 @@ type CaegoryUtama struct {
 }
 
 type InputCaegoryUtama struct {
-	gorm.Model
 	FiturId     uint64 `json:"fitur_id" binding:"required"`
 	Nama        string `json:"nama" binding:"required"`
 	Description string `json:"description" binding:"required"`
