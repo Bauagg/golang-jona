@@ -6,7 +6,6 @@ import (
 	models "backend-jona-golang/models/model-global"
 	modelkonsumens "backend-jona-golang/models/model-konsumen"
 	"backend-jona-golang/utils"
-	"encoding/json"
 	"strconv"
 	"time"
 
@@ -245,7 +244,10 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 
 	// Bind JSON body to the NotifikasiPembayaran struct
 	if err := ctx.ShouldBindJSON(&notifikasi); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(400, gin.H{
+			"error": true,
+			"message": err.Error(),
+		})
 		return
 	}
 
@@ -328,22 +330,18 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		return
 	}
 
-	// Siapkan data untuk dikirim ke klien
-	notificationData := NotificationDataTransaksi{
-		OrderID:       notifikasi.OrderID,
-		TransactionID: notifikasi.TransactionID,
-	}
+	// Store the notification data globally
+	message := "Pembayaran untuk Order ID " + notifikasi.OrderID + " berhasil!"
+	heading := "Notifikasi"
+	userIds := []string{"982347324084"}
 
-	// Konversi ke JSON
-	notificationJSON, err := json.Marshal(notificationData)
+	err = utils.SendPaymentNotification(message, heading, userIds)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to marshal notification data"})
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "Failed to send notification",
+		})
 		return
-	}
-
-	// Kirim notifikasi ke klien yang terhubung
-	for _, channel := range clients {
-		channel <- string(notificationJSON) // Kirim data JSON
 	}
 
 	ctx.JSON(200, gin.H{

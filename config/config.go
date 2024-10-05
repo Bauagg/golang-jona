@@ -8,18 +8,21 @@ import (
 )
 
 var (
-	DB_HOST             string
-	DB_PORT             string
-	DB_NAME             string
-	DB_USER             string
-	DB_PASSWORD         string
-	APP_PORT            string
-	SECRET_KEY          string
-	GMAIL_OTP           string
-	PASSWORD_OTP        string
-	URL_HOST            string
-	URL_MIDTRANS        string
-	SERVER_KEY_MIDTRANS string
+	DB_HOST               string
+	DB_PORT               string
+	DB_NAME               string
+	DB_USER               string
+	DB_PASSWORD           string
+	APP_PORT              string
+	SECRET_KEY            string
+	GMAIL_OTP             string
+	PASSWORD_OTP          string
+	URL_HOST              string
+	URL_MIDTRANS          string
+	SERVER_KEY_MIDTRANS   string
+	URL_NOTIFIKASI        string
+	APP_ID                string
+	SERVER_KEY_NOTIFIKASI string
 )
 
 func InitConfigEnv() {
@@ -80,6 +83,7 @@ func InitConfigEnv() {
 		URL_HOST = urlhost
 	}
 
+	// Midtrans
 	urlMidtrans := os.Getenv("URL_MIDTRANS")
 	if urlMidtrans != "" {
 		URL_MIDTRANS = urlMidtrans
@@ -88,5 +92,21 @@ func InitConfigEnv() {
 	serverKeyMidtrans := os.Getenv("SERVER_KEY_MIDTRANS")
 	if serverKeyMidtrans != "" {
 		SERVER_KEY_MIDTRANS = serverKeyMidtrans
+	}
+
+	// Notifikasi
+	urlNotifikasi := os.Getenv("URL_NOTIFIKASI")
+	if urlNotifikasi != "" {
+		URL_NOTIFIKASI = urlNotifikasi
+	}
+
+	appID := os.Getenv("APP_ID")
+	if appID != "" {
+		APP_ID = appID
+	}
+
+	serverKeyNotifikasi := os.Getenv("SERVER_KEY_NOTIFIKASI")
+	if serverKeyNotifikasi != "" {
+		SERVER_KEY_NOTIFIKASI = serverKeyNotifikasi
 	}
 }

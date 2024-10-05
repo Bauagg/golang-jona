@@ -30,6 +30,7 @@ type PesananKonsumen struct {
 	IdAddress           uint64             `json:"id_address" binding:"required"`
 	Address             models.Address     `gorm:"foreignKey:IdAddress"`
 	VaBank              string             `json:"va_bank" gorm:"null"`
+	AlamatTujuan        uint64             `json:"alamat_tujuan" gorm:"null"`
 }
 
 type InputPesananKonsumen struct {
@@ -37,4 +38,12 @@ type InputPesananKonsumen struct {
 	MetodePembayaran uint64 `json:"metode_pembayaran" binding:"required"` // Payment Method ID (required)
 	JasaBersiId      uint64 `json:"jasa_bersi_id" binding:"required"`     // Service ID (required)
 	IdAddress        uint64 `json:"id_address" binding:"required"`        // Order Code (required)
+}
+
+type InputPesananJasaKirimKonsumen struct {
+	gorm.Model
+	MetodePembayaran uint64 `json:"metode_pembayaran" binding:"required"` // Payment Method ID (required)
+	JasaBersiId      uint64 `json:"jasa_bersi_id" binding:"required"`     // Service ID (required)
+	IdAddress        uint64 `json:"id_address" binding:"required"`        // Order Code (required)
+	IdAlamatTujuan   uint64 `json:"id_alamat_tujuan" binding:"required"`
 }

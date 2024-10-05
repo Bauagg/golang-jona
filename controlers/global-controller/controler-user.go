@@ -341,3 +341,50 @@ func UpdatePassword(ctx *gin.Context) {
 		"message": "Password updated successfully.",
 	})
 }
+
+func ValidatePassword(ctx *gin.Context) {
+	var input models.InputValidatePassword
+	var data models.Users
+
+	user_id, _ := ctx.Get("userID")
+
+	if errInput := ctx.ShouldBind(&input); errInput != nil {
+		ctx.JSON(400, gin.H{
+			"error":   true,
+			"message": errInput.Error(),
+		})
+	}
+
+	if err := databases.DB.Table("users").Where("id = ?", user_id).First(&data).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(404, gin.H{
+				"error":   true,
+				"message": "User not found",
+			})
+
+			return
+		} else {
+			ctx.JSON(500, gin.H{
+				"error":   true,
+				"message": "Failed to retrieve user profile",
+			})
+
+			return
+		}
+	}
+
+	// Verify password
+	err := utils.VerifikasiHashPassword(input.Password, data.Password)
+	if err != nil {
+		ctx.JSON(401, gin.H{ // Status 401 for Unauthorized
+			"error":   true,
+			"message": "Invalid password.",
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"error":   false,
+		"message": "success konfirmasi password",
+	})
+}

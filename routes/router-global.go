@@ -17,6 +17,7 @@ func RouterIndex(app *gin.Engine) {
 	// Router lupa Password
 	router.PUT("/api/jona/v-1/email", controlers.CreateEmailOTP)
 	router.PUT("/api/jona/v-1/password/:id", controlers.UpdatePassword)
+	router.POST("/api/jona/v-1/password", middleware.AuthMiddleware(), controlers.ValidatePassword)
 	router.POST("/api/jona/v-1/otp-password/:id", controlers.VerifyOTPPassword)
 	router.GET("/api/jona/v-1/otp-password/:id", controlers.SendEmailOtpPassword)
 
@@ -56,4 +57,8 @@ func RouterIndex(app *gin.Engine) {
 	router.POST("/api/jona/v-1/daftar-bank", controlers.CreateDaftarBank)
 	router.PUT("/api/jona/v-1/daftar-bank/:id", controlers.UpdateDaftarBank)
 	router.DELETE("/api/jona/v-1/daftar-bank/:id", controlers.DeleteDaftarBank)
+
+	// Router untuk Category Specific
+	router.GET("/api/jona/v-1/specific-category/:id", controlers.ListCategorySpecific)
+	router.POST("/api/jona/v-1/specific-category", controlers.CreateCategorySpecific)
 }

@@ -31,6 +31,7 @@ func main() {
 	// Setup static file serving for images
 	app.Static("/images-fitur", "./public/image-fitur")
 	app.Static("/images-bank", "./public/image-bank")
+	app.Static("/profile-user", "./public/profile-user")
 
 	// Setup router
 	router.RouterIndex(app)

@@ -15,7 +15,7 @@ type Address struct {
 	DetailAlamat string  `gorm:"size:255;not null" json:"detail_alamat"`
 	Latitude     float64 `gorm:"type:decimal(9,6);not null" json:"latitude"`  // Latitude with 6 decimal places
 	Longitude    float64 `gorm:"type:decimal(9,6);not null" json:"longitude"` // Longitude with 6 decimal places
-	Status       string  `gorm:"size:255;null" json:"status" gorm:"default:'konsumen'"`
+	Status       string  `gorm:"size:255;null" json:"status"`
 }
 
 type PayloadAddress struct {

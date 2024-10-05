@@ -28,7 +28,7 @@ func UpdateExpiredOrders() {
 		newNotification := modelkonsumens.NotifikasiPembayaran{
 			Description:   "Waktu Pembayaran kamu habis",
 			UserId:        order.UserID,
-			StatusPesanan: modelkonsumens.NotifikasiBatal,
+			StatusPesanan: modelkonsumens.NotifikasiKadaluarsa,
 			TransactionID: order.TransactionMidtrans,
 		}
 

@@ -40,3 +40,12 @@ type InputPassword struct {
 	Password           string `json:"password" binding:"required"` // Wajib diisi, disembunyikan saat diubah ke JSON
 	KonfirmasiPassword string `json:"konfirmasi_password" binding:"required" gorm:"-"`
 }
+
+type InputUpdateProfilekonsumen struct {
+	Nama  string `json:"nama" form:"nama"`
+	Email string `json:"email" form:"email"`
+}
+
+type InputValidatePassword struct {
+	Password string `json:"password" binding:"required"`
+}

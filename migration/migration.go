@@ -17,8 +17,12 @@ func Migrate() {
 		&models.CaegoryUtama{},
 		&models.SubCategory{},
 		&models.DaftarBank{},
+		&models.CategorySpecific{},
+
+		// Tambahkan model konsumen
 		&modelkonsumens.PesananKonsumen{},
 		&modelkonsumens.NotifikasiPembayaran{},
+		&modelkonsumens.AddressTujuna{},
 	)
 	if err != nil {
 		panic("Failed to migrate: " + err.Error())
