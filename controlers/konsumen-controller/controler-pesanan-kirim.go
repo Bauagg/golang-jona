@@ -110,6 +110,7 @@ func CreatePesananJasaKirim(ctx *gin.Context) {
 	dataPesanan.VaBank = response.VANumbers[0].VANumber
 	dataPesanan.IdAddress = uint64(address.ID)
 	dataPesanan.AlamatTujuan = input.IdAlamatTujuan
+	dataPesanan.SpecificCategory = uint64(dataSpecificCategory.ID)
 
 	if err := databases.DB.Table("pesanan_konsumens").Create(&dataPesanan).Error; err != nil {
 		ctx.JSON(500, gin.H{
