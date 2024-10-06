@@ -307,9 +307,7 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		// Store the notification data globally
 		message := "Pembayaran untuk Order ID " + notifikasi.OrderID + " berhasil!"
 		heading := "Notifikasi"
-		userIds := []string{"982347324084"}
-
-		// strconv.FormatUint(pesanan.UserID, 10)
+		userIds := []string{strconv.FormatUint(pesanan.UserID, 10)}
 
 		err = utils.SendPaymentNotification(message, heading, userIds)
 		if err != nil {
