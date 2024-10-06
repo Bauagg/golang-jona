@@ -179,7 +179,7 @@ func CreatePesananBersihBersih(ctx *gin.Context) {
 	orderID := utils.GenerateOrderID("JONA")
 
 	payloadBank.PaymentType = "bank_transfer"
-	payloadBank.TransactionDetails.GrossAmount = dataSubCategory.Harga
+	payloadBank.TransactionDetails.GrossAmount = uint64(*dataSubCategory.Harga)
 	payloadBank.TransactionDetails.OrderID = orderID
 	payloadBank.BankTransfer.Bank = dataBank.Type
 	payloadBank.CustomExpiry.OrderTime = time.Now().In(time.FixedZone("WIB", 7*60*60)).Format("2006-01-02 15:04:05 +0700")

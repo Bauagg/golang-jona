@@ -71,11 +71,17 @@ func CreateSubCategory(ctx *gin.Context) {
 		return
 	}
 
-	data := models.SubCategory{
-		Nama:        input.Nama,
-		Description: input.Description,
-		IdCategory:  input.IdCategory,
-		Harga:       input.Harga,
+	var data models.SubCategory
+
+	data.Nama = input.Nama
+	data.IdCategory = input.IdCategory
+
+	if input.Description != "" {
+		data.Description = &input.Description
+	}
+
+	if input.Harga != 0 {
+		data.Harga = &input.Harga
 	}
 
 	if err := databases.DB.Table("sub_categories").Create(&data).Error; err != nil {
@@ -122,8 +128,15 @@ func UpdateSubCategory(ctx *gin.Context) {
 	}
 
 	data.Nama = input.Nama
-	data.Harga = input.Harga
-	data.Description = input.Description
+	data.IdCategory = input.IdCategory
+
+	if input.Description != "" {
+		data.Description = &input.Description
+	}
+
+	if input.Harga != 0 {
+		data.Harga = &input.Harga
+	}
 
 	if err := databases.DB.Table("sub_categories").Where("id = ?", ctx.Param("id")).Updates(&data).Error; err != nil {
 		ctx.JSON(500, gin.H{

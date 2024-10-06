@@ -18,6 +18,7 @@ func CreatePesananJasaKirim(ctx *gin.Context) {
 	var dataCategory models.CaegoryUtama
 	var dataBank models.DaftarBank
 	var address models.Address
+	var dataSpecificCategory models.CategorySpecific
 	var payloadBank utils.BankTransferPayload
 
 	user_id, _ := ctx.Get("userID")
@@ -71,11 +72,19 @@ func CreatePesananJasaKirim(ctx *gin.Context) {
 		return
 	}
 
+	if err := databases.DB.Table("category_specifics").Where("id = ?", input.SpecificCategory).First(&dataSpecificCategory).Error; err != nil {
+		ctx.JSON(500, gin.H{
+			"error":   true,
+			"message": "id Category Specific Not Found",
+		})
+		return
+	}
+
 	// Menghasilkan OrderID
 	orderID := utils.GenerateOrderID("JONA")
 
 	payloadBank.PaymentType = "bank_transfer"
-	payloadBank.TransactionDetails.GrossAmount = dataSubCategory.Harga
+	payloadBank.TransactionDetails.GrossAmount = dataSpecificCategory.Price
 	payloadBank.TransactionDetails.OrderID = orderID
 	payloadBank.BankTransfer.Bank = dataBank.Type
 	payloadBank.CustomExpiry.OrderTime = time.Now().In(time.FixedZone("WIB", 7*60*60)).Format("2006-01-02 15:04:05 +0700")
