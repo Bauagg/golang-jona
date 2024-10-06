@@ -303,6 +303,22 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		pesanan.Status = modelkonsumens.Berhasil
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiBerhasil
 		dataNotifikasi.Description = "Jona lagi cari jasa terbaik buat kamu."
+
+		// Store the notification data globally
+		message := "Pembayaran untuk Order ID " + notifikasi.OrderID + " berhasil!"
+		heading := "Notifikasi"
+		userIds := []string{"982347324084"}
+
+		// strconv.FormatUint(pesanan.UserID, 10)
+
+		err = utils.SendPaymentNotification(message, heading, userIds)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"error":   true,
+				"message": "Failed to send notification",
+			})
+			return
+		}
 	} else if notifikasi.TransactionStatus == "expire" {
 		pesanan.Status = modelkonsumens.Kadaluarsa
 		dataNotifikasi.StatusPesanan = modelkonsumens.NotifikasiKadaluarsa
@@ -326,20 +342,6 @@ func NotifikasiPembayaran(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{
 			"error":   true,
 			"message": "Failed to update the order status. Please try again later.",
-		})
-		return
-	}
-
-	// Store the notification data globally
-	message := "Pembayaran untuk Order ID " + notifikasi.OrderID + " berhasil!"
-	heading := "Notifikasi"
-	userIds := []string{"982347324084"}
-
-	err = utils.SendPaymentNotification(message, heading, userIds)
-	if err != nil {
-		ctx.JSON(500, gin.H{
-			"error":   true,
-			"message": "Failed to send notification",
 		})
 		return
 	}
