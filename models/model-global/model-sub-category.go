@@ -13,7 +13,7 @@ type SubCategory struct {
 
 type InputSubCategory struct {
 	Nama        string `json:"nama" binding:"required"`
-	Harga       uint64 `json:"harga" binding:"required"`
-	Description string `json:"description" binding:"required"`
+	Harga       uint64 `json:"harga"`
+	Description string `json:"description"`
 	IdCategory  uint64 `json:"id_category" binding:"required"`
 }
